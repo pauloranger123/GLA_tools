@@ -32,13 +32,13 @@ jobs:
       - name: Ler versão do projeto
         id: get-version
         shell: bash
-        run: echo "version=$(grep -oE '<Version>[^<]+' GLAtools/GLAtools.csproj | sed 's/<Version>//')" >> $GITHUB_OUTPUT
+        run: echo "version=$(grep -oE '<Version>[^<]+' GLAtools.csproj | sed 's/<Version>//')" >> $GITHUB_OUTPUT
 
       # Compila o app em modo Release, self-contained (inclui o runtime do
       # .NET dentro do pacote, para o usuario final nao precisar instalar
       # nada separadamente), publicando na pasta "publish".
       - name: Compilar aplicação
-        run: dotnet publish GLAtools/GLAtools.csproj -c Release -o publish -r win-x64 --self-contained true
+        run: dotnet publish GLAtools.csproj -c Release -o publish -r win-x64 --self-contained true
 
       # Empacota e publica o release usando o Velopack (vpk).
       # 1. Instala a ferramenta vpk
