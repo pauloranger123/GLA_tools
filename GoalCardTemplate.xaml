@@ -1,0 +1,198 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:conv="clr-namespace:GLAtools.Converters">
+
+    <conv:GoalMetToColorConverter x:Key="GoalMetToColorConverter"/>
+    <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+    <conv:DaysRemainingToTextConverter x:Key="DaysRemainingToTextConverter"/>
+    <conv:LockIconConverter x:Key="LockIconConverter"/>
+
+    <!-- Template de uma LINHA de player dentro do card (nome + inputs de doacao) -->
+    <DataTemplate x:Key="PlayerDonationRowTemplate">
+        <Border BorderBrush="#3A2418" BorderThickness="0,0,0,1" Padding="0,6">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="90"/>
+                    <ColumnDefinition Width="90"/>
+                    <ColumnDefinition Width="20"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="{Binding PlayerName}"
+                           Style="{StaticResource TextBody}"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+
+                <!-- Berries. Usa BerriesDonatedText (formatado com ponto de
+                     milhar, ex: "100.000") em vez do long puro. IsEnabled olha
+                     para o Tag do ItemsControl pai, amarrado ao IsEditable do card. -->
+                <TextBox Grid.Column="1" Style="{StaticResource WoodTextBox}"
+                         Margin="3,0"
+                         Text="{Binding BerriesDonatedText, UpdateSourceTrigger=PropertyChanged}"
+                         IsEnabled="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=Tag}"
+                         Visibility="{Binding HasBerriesGoal, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                <!-- Gemas -->
+                <TextBox Grid.Column="2" Style="{StaticResource WoodTextBox}"
+                         Margin="3,0"
+                         Text="{Binding GemsDonated, UpdateSourceTrigger=PropertyChanged}"
+                         IsEnabled="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=Tag}"
+                         Visibility="{Binding HasGemsGoal, Converter={StaticResource BoolToVisibilityConverter}}"/>
+
+                <!-- Indicador de check (bateu a meta) -->
+                <TextBlock Grid.Column="3" Text="&#10003;" FontWeight="Bold" FontSize="16"
+                           VerticalAlignment="Center" HorizontalAlignment="Center"
+                           Foreground="{Binding HasMetGoal, Converter={StaticResource GoalMetToColorConverter}}"/>
+            </Grid>
+        </Border>
+    </DataTemplate>
+
+    <!-- Template do CARD de meta completo -->
+    <DataTemplate x:Key="GoalCardTemplate">
+        <Border Width="320" MinHeight="420" MaxHeight="520" Margin="8" CornerRadius="6"
+                BorderBrush="{StaticResource BrushGoldBorder}" BorderThickness="2"
+                Background="{StaticResource BrushWoodMid}">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="3" Opacity="0.5" Color="Black"/>
+            </Border.Effect>
+            <Grid>
+                <!-- Camada de textura sutil por cima do fundo solido. Fica em uma
+                     Border separada (e nao direto no Background do card) para que
+                     a cor de base (BrushWoodMid) permaneca solida e consistente,
+                     com a textura apenas "pairando" levemente por cima. -->
+                <Border CornerRadius="6" Background="{StaticResource BrushWoodTexture}"/>
+
+                <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Cabecalho do card: titulo + prazo + acoes (bloquear / excluir) -->
+                <Border Grid.Row="0" Background="{StaticResource BrushAccentRed}"
+                        CornerRadius="6,6,0,0" Padding="12,10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="{Binding Title}" Style="{StaticResource TextTitle}"
+                                       FontSize="16" Foreground="White" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Text="{Binding DaysRemaining, Converter={StaticResource DaysRemainingToTextConverter}}"
+                                       FontSize="11" Foreground="#E8C589" Margin="0,2,0,0"/>
+                        </StackPanel>
+
+                        <!-- Botao de bloquear/desbloquear edicao (estilo toggle).
+                             Quando BLOQUEADO: fundo vermelho escuro + cadeado fechado.
+                             Quando DESBLOQUEADO: fundo verde escuro + cadeado aberto.
+                             A diferenca de cor (nao so o icone) ajuda a notar o
+                             estado de longe, mesmo sem reparar no emoji. -->
+                        <ToggleButton Grid.Column="1" Width="30" Height="26" Margin="6,0,0,0"
+                                      IsChecked="{Binding IsLocked, Mode=TwoWay}"
+                                      ToolTip="Bloquear/desbloquear edição desta meta"
+                                      VerticalAlignment="Top">
+                            <ToggleButton.Style>
+                                <Style TargetType="ToggleButton">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ToggleButton">
+                                                <Border x:Name="LockBorder" Background="#2E5C2E" CornerRadius="4"
+                                                        BorderBrush="{StaticResource BrushGoldBorder}" BorderThickness="1">
+                                                    <TextBlock x:Name="LockIcon" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                               FontSize="14" Text="🔓"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsChecked" Value="True">
+                                                        <Setter TargetName="LockBorder" Property="Background" Value="#5C2E2E"/>
+                                                        <Setter TargetName="LockIcon" Property="Text" Value="🔒"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="LockBorder" Property="Opacity" Value="0.8"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ToggleButton.Style>
+                        </ToggleButton>
+
+                        <!-- Botao de excluir a meta, conectado via Command (mais
+                             confiavel que evento roteado quando o botao esta
+                             dentro de varios niveis de ScrollViewer/DataTemplate) -->
+                        <Button Grid.Column="2" Width="30" Height="26" Margin="6,0,0,0"
+                                Content="✕" FontWeight="Bold" FontSize="13"
+                                ToolTip="Excluir esta meta"
+                                Command="{Binding DeleteCommand}"
+                                CommandParameter="{Binding}"
+                                VerticalAlignment="Top">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="#5C1A1A" CornerRadius="4"
+                                                        BorderBrush="{StaticResource BrushGoldBorder}" BorderThickness="1">
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                      TextElement.Foreground="White"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Opacity" Value="0.8"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- Cabecalho das colunas (Berries / Gemas) -->
+                <Grid Grid.Row="1" Margin="12,10,12,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="90"/>
+                        <ColumnDefinition Width="90"/>
+                        <ColumnDefinition Width="20"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Membro" Style="{StaticResource TextMuted}" FontWeight="Bold"/>
+                    <TextBlock Grid.Column="1" Text="{Binding BerriesTarget, StringFormat='Berries (/{0})'}"
+                               Style="{StaticResource TextMuted}" FontWeight="Bold" TextWrapping="Wrap"
+                               Visibility="{Binding HasBerriesGoal, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                    <TextBlock Grid.Column="2" Text="{Binding GemsTarget, StringFormat='Gemas (/{0})'}"
+                               Style="{StaticResource TextMuted}" FontWeight="Bold" TextWrapping="Wrap"
+                               Visibility="{Binding HasGemsGoal, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                </Grid>
+
+                <!-- Lista de players com seus inputs, agora com ScrollViewer proprio
+                     (antes faltava isso, e por isso o conteudo cortava sem rolar) -->
+                <ScrollViewer Grid.Row="2" Margin="12,0,12,8" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Donations}"
+                                  Tag="{Binding IsEditable}"
+                                  ItemTemplate="{StaticResource PlayerDonationRowTemplate}"/>
+                </ScrollViewer>
+
+                <!-- Rodape: progresso geral -->
+                <Border Grid.Row="3" Background="#2B1810" CornerRadius="0,0,6,6" Padding="12,8">
+                    <TextBlock HorizontalAlignment="Center" Style="{StaticResource TextBody}">
+                        <TextBlock.Text>
+                            <MultiBinding StringFormat="{}{0} de {1} membros completaram a meta">
+                                <Binding Path="CompletedCount"/>
+                                <Binding Path="TotalCount"/>
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
+                </Border>
+                </Grid>
+            </Grid>
+        </Border>
+    </DataTemplate>
+
+</ResourceDictionary>

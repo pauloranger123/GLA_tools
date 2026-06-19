@@ -1,0 +1,55 @@
+name: Build and Release GLAtools
+
+# Dispara automaticamente sempre que houver push na branch "main".
+# Esse e o "robo" que automatiza todo o processo: compilar, empacotar
+# com Velopack, e publicar como Release no GitHub.
+on:
+  push:
+    branches:
+      - main
+
+# Necessario para que o workflow tenha permissao de criar Releases
+# e fazer upload de arquivos no proprio repositorio.
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Instalar .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      # Le a versao diretamente da tag <Version> dentro do .csproj, para
+      # nao precisar digitar o numero da versao em dois lugares diferentes
+      # (no .csproj e aqui no workflow).
+      - name: Ler versão do projeto
+        id: get-version
+        shell: bash
+        run: echo "version=$(grep -oE '<Version>[^<]+' GLAtools/GLAtools.csproj | sed 's/<Version>//')" >> $GITHUB_OUTPUT
+
+      # Compila o app em modo Release, self-contained (inclui o runtime do
+      # .NET dentro do pacote, para o usuario final nao precisar instalar
+      # nada separadamente), publicando na pasta "publish".
+      - name: Compilar aplicação
+        run: dotnet publish GLAtools/GLAtools.csproj -c Release -o publish -r win-x64 --self-contained true
+
+      # Empacota e publica o release usando o Velopack (vpk).
+      # 1. Instala a ferramenta vpk
+      # 2. Baixa o release anterior (necessario para gerar pacotes "delta",
+      #    que sao atualizacoes incrementais menores e mais rapidas)
+      # 3. Empacota a nova versao
+      # 4. Publica como um novo Release no GitHub, com tag "v<versao>"
+      - name: Criar e publicar release com Velopack
+        shell: bash
+        run: |
+          dotnet tool install -g vpk
+          vpk download github --repoUrl https://github.com/${{ github.repository }}
+          vpk pack -u GLAtools -v ${{ steps.get-version.outputs.version }} -p publish -e GLAtools.exe
+          vpk upload github --repoUrl https://github.com/${{ github.repository }} --publish --releaseName "GLAtools ${{ steps.get-version.outputs.version }}" --tag v${{ steps.get-version.outputs.version }}

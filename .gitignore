@@ -1,0 +1,23 @@
+# Pastas de build do .NET -- geradas automaticamente, nunca devem ir pro Git
+bin/
+obj/
+
+# Arquivos de usuario do Visual Studio / VS Code (preferencias locais, nao do projeto)
+.vs/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.user
+*.suo
+
+# Pastas de publish/instalador gerados localmente
+publish/
+installer-output/
+*.exe
+!Setup/*.iss
+
+# Arquivos de log e temporarios
+*.log
+*.tmp
