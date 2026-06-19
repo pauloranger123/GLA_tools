@@ -48,8 +48,10 @@ jobs:
       # 4. Publica como um novo Release no GitHub, com tag "v<versao>"
       - name: Criar e publicar release com Velopack
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           dotnet tool install -g vpk
-          vpk download github --repoUrl https://github.com/${{ github.repository }}
+          vpk download github --repoUrl https://github.com/${{ github.repository }} --token ${{ secrets.GITHUB_TOKEN }}
           vpk pack -u GLAtools -v ${{ steps.get-version.outputs.version }} -p publish -e GLAtools.exe
-          vpk upload github --repoUrl https://github.com/${{ github.repository }} --publish --releaseName "GLAtools ${{ steps.get-version.outputs.version }}" --tag v${{ steps.get-version.outputs.version }}
+          vpk upload github --repoUrl https://github.com/${{ github.repository }} --publish --releaseName "GLAtools ${{ steps.get-version.outputs.version }}" --tag v${{ steps.get-version.outputs.version }} --token ${{ secrets.GITHUB_TOKEN }}
