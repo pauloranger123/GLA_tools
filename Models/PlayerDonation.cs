@@ -67,9 +67,38 @@ namespace GLAtools.Models
 
         // Essas duas propriedades guardam a META da doacao (copiada do goal pai)
         // para que cada linha saiba calcular se bateu a meta ou nao, sem precisar
-        // voltar a consultar o objeto pai a cada binding.
-        public long BerriesTarget { get; set; }
-        public long GemsTarget { get; set; }
+        // voltar a consultar o objeto pai a cada binding. Agora sao propriedades
+        // completas (em vez de auto-propriedades) porque RecalculateSplit() no
+        // AllianceGoal pode alterar esses valores em tempo real (modo TotalSplit
+        // recalculando apos mudanca na quantidade de membros), e a UI precisa
+        // ser notificada para refletir o novo valor (texto, "✓" de meta batida, etc).
+        private long _berriesTarget;
+        public long BerriesTarget
+        {
+            get => _berriesTarget;
+            set
+            {
+                _berriesTarget = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasBerriesGoal));
+                OnPropertyChanged(nameof(HasMetBerries));
+                OnPropertyChanged(nameof(HasMetGoal));
+            }
+        }
+
+        private long _gemsTarget;
+        public long GemsTarget
+        {
+            get => _gemsTarget;
+            set
+            {
+                _gemsTarget = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasGemsGoal));
+                OnPropertyChanged(nameof(HasMetGems));
+                OnPropertyChanged(nameof(HasMetGoal));
+            }
+        }
 
         // Usadas no XAML para mostrar/esconder a coluna de Berries ou Gemas
         // sem precisar de binding ascendente (RelativeSource AncestorType).

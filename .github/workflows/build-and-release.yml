@@ -46,6 +46,13 @@ jobs:
       #    que sao atualizacoes incrementais menores e mais rapidas)
       # 3. Empacota a nova versao
       # 4. Publica como um novo Release no GitHub, com tag "v<versao>"
+      #
+      # --token: embora o repositorio seja publico, o comando "upload" do
+      # vpk precisa de um token explicito para autenticar a CRIACAO do
+      # Release (criar releases sempre exige autenticacao, mesmo em repos
+      # publicos). O GITHUB_TOKEN e gerado automaticamente pelo GitHub
+      # Actions a cada execucao -- nao precisamos cria-lo manualmente,
+      # so referencia-lo via secrets.GITHUB_TOKEN.
       - name: Criar e publicar release com Velopack
         shell: bash
         env:

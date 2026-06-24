@@ -23,6 +23,7 @@ namespace GLAtools
             InitializeComponent();
             _players = players;
             DeadlinePicker.SelectedDate = DateTime.Now.AddDays(7);
+            UpdateFieldLabels();
         }
 
         private void UseBerriesCheck_Changed(object sender, RoutedEventArgs e)
@@ -30,6 +31,39 @@ namespace GLAtools
 
         private void UseGemsCheck_Changed(object sender, RoutedEventArgs e)
             => GemsInput.IsEnabled = UseGemsCheck.IsChecked == true;
+
+        // Atualiza os rotulos acima dos campos para deixar claro o que o
+        // numero digitado representa em cada modo (por membro vs total).
+        private void DivisionMode_Changed(object sender, RoutedEventArgs e)
+        {
+            UpdateFieldLabels();
+        }
+
+        private void UpdateFieldLabels()
+        {
+            // Esse metodo pode ser chamado pelo evento Checked do RadioButton
+            // ANTES do XAML terminar de inicializar todos os elementos da
+            // janela (o parser dispara Checked no momento em que processa
+            // IsChecked="True" no XAML, e elementos declarados DEPOIS dele
+            // no arquivo -- como TotalSplitRadio, BerriesLabel, GemsLabel --
+            // ainda nao existem nesse momento). Por isso protegemos contra
+            // TODOS os elementos usados aqui, nao so o primeiro.
+            if (TotalSplitRadio == null || BerriesLabel == null || GemsLabel == null) return;
+
+            bool isTotalSplit = TotalSplitRadio.IsChecked == true;
+
+            if (isTotalSplit)
+            {
+                int memberCount = _players.Count;
+                BerriesLabel.Text = $"Total de Berries a dividir entre {memberCount} membro(s)";
+                GemsLabel.Text = $"Total de Gemas a dividir entre {memberCount} membro(s)";
+            }
+            else
+            {
+                BerriesLabel.Text = "Berries que cada membro deve doar";
+                GemsLabel.Text = "Gemas que cada membro deve doar";
+            }
+        }
 
         // Berries: reformata o texto com pontos de milhar (ex: 100000 -> 100.000)
         // a cada digitacao, mantendo o cursor numa posicao sensata.
@@ -130,15 +164,42 @@ namespace GLAtools
                 return;
             }
 
+            if (_players.Count == 0)
+            {
+                ShowError("A aliança não tem nenhum membro cadastrado ainda.");
+                return;
+            }
+
+            bool isTotalSplit = TotalSplitRadio.IsChecked == true;
+
             var goal = new AllianceGoal
             {
                 Title = title,
-                BerriesTarget = useBerries ? berriesTarget : 0,
-                GemsTarget = useGems ? gemsTarget : 0,
+                DivisionMode = isTotalSplit ? GoalDivisionMode.TotalSplit : GoalDivisionMode.PerMember,
                 Deadline = DeadlinePicker.SelectedDate.Value
             };
 
-            // Cria automaticamente uma linha de doacao (zerada) para cada player existente
+            if (isTotalSplit)
+            {
+                // Modo "valor total": guarda o total como referencia fixa;
+                // o valor por membro (BerriesTarget/GemsTarget) e calculado
+                // a seguir, depois que as Donations forem criadas, ja que
+                // RecalculateSplit() precisa da lista de Donations preenchida
+                // para saber por quantos membros dividir.
+                goal.BerriesTotalTarget = useBerries ? berriesTarget : 0;
+                goal.GemsTotalTarget = useGems ? gemsTarget : 0;
+            }
+            else
+            {
+                // Modo "por membro": o valor digitado e o valor final direto,
+                // sem necessidade de calculo de divisao.
+                goal.BerriesTarget = useBerries ? berriesTarget : 0;
+                goal.GemsTarget = useGems ? gemsTarget : 0;
+            }
+
+            // Cria automaticamente uma linha de doacao (zerada) para cada player existente.
+            // No modo TotalSplit, o BerriesTarget/GemsTarget aqui ainda nao e o valor
+            // final -- sera substituido pelo RecalculateSplit() chamado abaixo.
             foreach (var player in _players)
             {
                 goal.Donations.Add(new PlayerDonation
@@ -149,6 +210,11 @@ namespace GLAtools
                     GemsTarget = goal.GemsTarget,
                     ParentGoal = goal
                 });
+            }
+
+            if (isTotalSplit)
+            {
+                goal.RecalculateSplit();
             }
 
             CreatedGoal = goal;

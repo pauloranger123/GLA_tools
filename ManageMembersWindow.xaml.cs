@@ -25,7 +25,33 @@ namespace GLAtools
         private void AddMember_Click(object sender, RoutedEventArgs e)
         {
             int nextNumber = _players.Count + 1;
-            _players.Add(new Player { Name = $"Player{nextNumber}" });
+            var newPlayer = new Player { Name = $"Player{nextNumber}" };
+            _players.Add(newPlayer);
+
+            // Adicionar um membro tambem afeta metas no modo TotalSplit (o
+            // total passa a ser dividido por mais gente). Cada meta existente
+            // precisa ganhar uma nova linha de doacao para esse player, e
+            // entao ser recalculada.
+            foreach (var goal in _goals)
+            {
+                goal.Donations.Add(new PlayerDonation
+                {
+                    PlayerId = newPlayer.Id,
+                    PlayerName = newPlayer.Name,
+                    BerriesTarget = goal.BerriesTarget,
+                    GemsTarget = goal.GemsTarget,
+                    ParentGoal = goal
+                });
+
+                if (goal.DivisionMode == GoalDivisionMode.TotalSplit)
+                {
+                    goal.RecalculateSplit(wasTriggeredByMemberChange: true);
+                }
+                else
+                {
+                    goal.RaiseAllChanged();
+                }
+            }
         }
 
         private void DeleteMember_Click(object sender, RoutedEventArgs e)
@@ -50,7 +76,17 @@ namespace GLAtools
                         if (donation != null)
                         {
                             goal.Donations.Remove(donation);
-                            goal.RaiseAllChanged(); // atualiza contadores (CompletedCount/TotalCount) do card
+
+                            if (goal.DivisionMode == GoalDivisionMode.TotalSplit)
+                            {
+                                // Redivide o MESMO total entre os membros que restaram,
+                                // e marca a meta com aviso de recalculo (WasRecalculated).
+                                goal.RecalculateSplit(wasTriggeredByMemberChange: true);
+                            }
+                            else
+                            {
+                                goal.RaiseAllChanged(); // so atualiza contadores (CompletedCount/TotalCount)
+                            }
                         }
                     }
                 }

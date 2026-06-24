@@ -28,12 +28,18 @@ namespace GLAtools
             System.Diagnostics.Debug.WriteLine($"[Update] {result}");
         }
 
-        // Cria (ou recria) o Command de exclusao para uma meta especifica.
-        // Precisa ser chamado para toda meta nova ou recem-carregada do JSON,
-        // ja que ICommand nao e serializavel (perde a referencia ao recarregar).
-        private void AttachDeleteCommand(AllianceGoal goal)
+        // Cria (ou recria) os Commands de uma meta especifica (excluir e
+        // dispensar aviso de recalculo). Precisa ser chamado para toda meta
+        // nova ou recem-carregada do JSON, ja que ICommand nao e serializavel
+        // (perde a referencia ao recarregar).
+        private void AttachGoalCommands(AllianceGoal goal)
         {
             goal.DeleteCommand = new RelayCommand(_ => DeleteGoal(goal));
+            goal.DismissRecalculatedCommand = new RelayCommand(_ =>
+            {
+                goal.WasRecalculated = false;
+                SaveData();
+            });
 
             // Salva automaticamente quando o lider bloquear/desbloquear a meta
             // (em vez de esperar a proxima acao que chamasse SaveData()).
@@ -68,7 +74,7 @@ namespace GLAtools
             // novo, ja que comandos (delegates) nao sao salvos no JSON.
             foreach (var goal in _data.Goals)
             {
-                AttachDeleteCommand(goal);
+                AttachGoalCommands(goal);
             }
 
             if (!_data.IsSetupComplete)
@@ -134,7 +140,7 @@ namespace GLAtools
 
             if (result == true && window.CreatedGoal != null)
             {
-                AttachDeleteCommand(window.CreatedGoal);
+                AttachGoalCommands(window.CreatedGoal);
                 _data.Goals.Add(window.CreatedGoal);
                 SaveData();
                 RefreshEmptyState();

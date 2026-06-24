@@ -1,6 +1,6 @@
 using Velopack;
-using Velopack.Sources;
 using Velopack.Exceptions;
+using Velopack.Sources;
 
 namespace GLAtools.Services
 {

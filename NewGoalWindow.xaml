@@ -12,13 +12,29 @@
         <TextBlock Text="Título da meta" Style="{StaticResource TextBody}" Margin="0,0,0,4"/>
         <TextBox x:Name="TitleInput" Style="{StaticResource WoodTextBox}" Margin="0,0,0,14"/>
 
+        <!-- Modo de divisao: "por membro" (cada um doa o valor digitado) ou
+             "total da alianca" (o valor digitado e dividido entre todos). -->
+        <TextBlock Text="Como o valor será aplicado?" Style="{StaticResource TextBody}" Margin="0,0,0,4"/>
+        <StackPanel Margin="0,0,0,14">
+            <RadioButton x:Name="PerMemberRadio" GroupName="DivisionMode" IsChecked="True"
+                         Foreground="{StaticResource BrushGoldText}" Margin="0,0,0,4"
+                         Checked="DivisionMode_Changed"
+                         Content="Cada membro deve doar o valor digitado"/>
+            <RadioButton x:Name="TotalSplitRadio" GroupName="DivisionMode"
+                         Foreground="{StaticResource BrushGoldText}"
+                         Checked="DivisionMode_Changed"
+                         Content="Valor total da meta (divide entre os membros)"/>
+        </StackPanel>
+
         <CheckBox x:Name="UseBerriesCheck" Content="Pedir Berries" Foreground="{StaticResource BrushGoldText}"
                   Checked="UseBerriesCheck_Changed" Unchecked="UseBerriesCheck_Changed" Margin="0,0,0,4"/>
+        <TextBlock x:Name="BerriesLabel" Text="" Style="{StaticResource TextMuted}" Margin="0,0,0,2"/>
         <TextBox x:Name="BerriesInput" Style="{StaticResource WoodTextBox}" Margin="0,0,0,14" IsEnabled="False"
                  TextChanged="BerriesInput_TextChanged"/>
 
         <CheckBox x:Name="UseGemsCheck" Content="Pedir Gemas" Foreground="{StaticResource BrushGoldText}"
                   Checked="UseGemsCheck_Changed" Unchecked="UseGemsCheck_Changed" Margin="0,0,0,4"/>
+        <TextBlock x:Name="GemsLabel" Text="" Style="{StaticResource TextMuted}" Margin="0,0,0,2"/>
         <TextBox x:Name="GemsInput" Style="{StaticResource WoodTextBox}" Margin="0,0,0,14" IsEnabled="False"
                  PreviewTextInput="GemsInput_PreviewTextInput"/>
 

@@ -1,26 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <UseWPF>true</UseWPF>
+      <OutputType>WinExe</OutputType>
+      <TargetFramework>net10.0-windows</TargetFramework>
+      <Nullable>enable</Nullable>
+      <ImplicitUsings>enable</ImplicitUsings>
+      <UseWPF>true</UseWPF>
 
-    <Version>1.0.1</Version>
-    <AssemblyVersion>1.0.0.1</AssemblyVersion>
-    <FileVersion>1.0.0.1</FileVersion>
-    <StartupObject>GLAtools.App</StartupObject> 
-
+      <Version>1.1.0</Version>
+      <AssemblyVersion>1.1.0.0</AssemblyVersion>
+      <FileVersion>1.1.0.0</FileVersion>
+      <StartupObject>GLAtools.App</StartupObject>
+      <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
+      <ApplicationIcon>Assets\app_icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <Resource Include="Assets\wood_texture.png" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ApplicationDefinition Remove="App.xaml" />
-    <Page Include="App.xaml" />
+    <Resource Include="Assets\app_icon.ico" />
   </ItemGroup>
 
   <ItemGroup>
